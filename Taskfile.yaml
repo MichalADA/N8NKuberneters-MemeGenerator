@@ -1,0 +1,28 @@
+version: '3'
+
+tasks:
+  setup:
+    desc: "Tworzy klaster Kind i instaluje n8n"
+    cmds:
+      - kind create cluster --name kind-memes
+      - kubectl cluster-info --context kind-kind-memes
+      - kubectl apply -f manifests/n8n-deployment.yaml
+      - kubectl wait --for=condition=available --timeout=90s deployment/n8n
+      - echo "n8n dostępne pod http://localhost:5678"
+
+  delete:
+    desc: "Czyści całe środowisko Kubernetes"
+    cmds:
+      - kind delete cluster --name kind-memes
+      - echo "Środowisko usunięte!"
+
+  restart:
+    desc: "Restartuje klaster Kind i n8n"
+    cmds:
+      - task: delete
+      - task: setup
+
+  port-forward:
+    desc: "Forwarduje port n8n na localhost"
+    cmds:
+      - kubectl port-forward svc/n8n 5678:80
